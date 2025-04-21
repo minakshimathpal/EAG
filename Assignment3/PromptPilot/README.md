@@ -1,12 +1,81 @@
-# Agentic AI Assistant - Setup Guide
+# Agentic AI Assistant Chrome Extension
 
-This guide will help you set up and test the Agentic AI Assistant Chrome extension with its Python backend.
+A Chrome extension powered by Gemini AI that helps users search for OTT content and send email notifications. The extension features a Python FastAPI backend and a Chrome extension frontend.
+
+## Features
+
+- 🔍 Search for any OTT content (movies, TV shows, web series)
+- 📧 Send search results via email
+- 💬 Natural language processing using Gemini AI
+- 🎯 Real-time content search using Google Search API
+- 🔄 Conversation history support
+
+## Project Components
+
+### Backend Components
+
+#### 1. `server.py`
+The core FastAPI server that:
+- Handles incoming requests from the Chrome extension
+- Integrates with Gemini AI for natural language processing
+- Manages the tool-based architecture for searches and email
+- Processes conversation history
+- Implements CORS for secure extension communication
+- Handles email functionality using SMTP
+
+#### 2. `server_manager.py`
+A system tray application that:
+- Manages the FastAPI server lifecycle
+- Provides easy server control through system tray icon
+- Enables background server operation
+- Offers quick access to server status
+
+#### 3. `test_server.py`
+A testing utility that:
+- Validates server functionality independently of the Chrome extension
+- Tests different query scenarios
+- Verifies email functionality
+
+### Frontend Components (in PromptPilot/)
+
+#### 1. `manifest.json`
+Chrome extension manifest that:
+- Defines extension permissions
+- Sets up content security policies
+- Configures extension behavior
+- Specifies resource locations
+
+#### 2. `popup.html`
+The extension's user interface that:
+- Provides query input field
+- Displays search results
+- Shows processing status
+- Handles email input
+- Manages user interactions
+
+#### 3. `popup.js`
+Frontend logic that:
+- Manages user interactions
+- Handles form submissions
+- Processes server responses
+- Updates UI elements
+
+#### 4. `service-worker.js`
+Background service worker that:
+- Manages communication with backend
+- Handles network requests
+- Processes responses
+
+#### 5. `libs/marked.min.js`
+Markdown processing library that:
+- Formats server responses
+- Renders markdown content
 
 ## Prerequisites
 
 1. Python 3.8 or higher
 2. Chrome browser
-3. OpenAI API key (get it from https://platform.openai.com/)
+3. Gemini API key (get it from https://aistudio.google.com/app/apikey)
 
 ## Step 1: Set up the Python Backend
 
@@ -14,7 +83,7 @@ This guide will help you set up and test the Agentic AI Assistant Chrome extensi
 ```bash
 mkdir agentic-ai-assistant
 cd agentic-ai-assistant
-```
+
 
 2. Create a virtual environment (recommended):
 ```bash
@@ -25,6 +94,7 @@ python -m venv venv
 # macOS/Linux
 python3 -m venv venv
 source venv/bin/activate
+
 ```
 
 3. Install the required packages:
@@ -52,177 +122,7 @@ mkdir chrome-extension
 cd chrome-extension
 ```
 
-2. Create the following files in the `chrome-extension` directory:
-
-### manifest.json
-```json
-{
-  "manifest_version": 3,
-  "name": "Agentic AI Assistant",
-  "version": "1.0",
-  "description": "An AI assistant that can handle complex tasks through multi-step reasoning",
-  "permissions": [
-    "storage",
-    "activeTab",
-    "scripting",
-    "tabs"
-  ],
-  "host_permissions": [
-    "http://localhost:8000/*"
-  ],
-  "background": {
-    "service_worker": "service-worker.js"
-  },
-  "action": {
-    "default_popup": "popup.html"
-  }
-}
-```
-
-### popup.html
-```html
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Agentic AI Assistant</title>
-    <style>
-        body {
-            width: 400px;
-            padding: 20px;
-            font-family: Arial, sans-serif;
-        }
-        .container {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-        textarea {
-            width: 100%;
-            height: 100px;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            resize: vertical;
-        }
-        button {
-            padding: 10px 15px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #45a049;
-        }
-        #response {
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            min-height: 100px;
-            max-height: 300px;
-            overflow-y: auto;
-        }
-        .status {
-            font-size: 12px;
-            color: #666;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h2>Agentic AI Assistant</h2>
-        <textarea id="query" placeholder="Enter your complex task here..."></textarea>
-        <button id="submit">Submit</button>
-        <div id="response"></div>
-        <div id="status" class="status"></div>
-    </div>
-    <script src="popup.js"></script>
-</body>
-</html>
-```
-
-### popup.js
-```javascript
-document.addEventListener('DOMContentLoaded', function() {
-    const queryInput = document.getElementById('query');
-    const submitButton = document.getElementById('submit');
-    const responseDiv = document.getElementById('response');
-    const statusDiv = document.getElementById('status');
-
-    let conversationHistory = [];
-
-    submitButton.addEventListener('click', async function() {
-        const query = queryInput.value.trim();
-        if (!query) return;
-
-        statusDiv.textContent = 'Processing...';
-        
-        try {
-            conversationHistory.push({ role: 'user', content: query });
-            
-            const response = await chrome.runtime.sendMessage({
-                type: 'processQuery',
-                query: query,
-                history: conversationHistory
-            });
-
-            conversationHistory.push({ role: 'assistant', content: response.message });
-            responseDiv.innerHTML = formatResponse(response.message);
-            queryInput.value = '';
-            statusDiv.textContent = 'Ready';
-        } catch (error) {
-            statusDiv.textContent = 'Error: ' + error.message;
-        }
-    });
-
-    function formatResponse(message) {
-        if (message.includes('```')) {
-            return message.replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>');
-        }
-        return message.replace(/\n/g, '<br>');
-    }
-});
-```
-
-### service-worker.js
-```javascript
-const API_ENDPOINT = 'http://localhost:8000/process-query';
-
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    if (message.type === 'processQuery') {
-        processQuery(message.query, message.history)
-            .then(response => sendResponse({ message: response }))
-            .catch(error => sendResponse({ message: `Error: ${error.message}` }));
-        return true;
-    }
-});
-
-async function processQuery(query, history) {
-    try {
-        const response = await fetch(API_ENDPOINT, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                query: query,
-                history: history
-            })
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        return data.response;
-    } catch (error) {
-        console.error('Error processing query:', error);
-        throw error;
-    }
-}
-```
+2. Create the files in the `chrome-extension` directory:
 
 ## Step 3: Load the Extension in Chrome
 
@@ -235,20 +135,41 @@ async function processQuery(query, history) {
 
 Try these example queries:
 
-1. Mathematical Calculation:
+1. 
 ```
-Calculate the sum of exponential values of the first 6 Fibonacci Numbers
-```
-
-2. Stock Analysis:
-```
-Find the stock price of Tesla and any recent news about it
+Please provide a list of the top trending Indian OTT series and email it to me
 ```
 
-3. Multi-step Research:
+2. 
 ```
-Track the price of Apple stock over the last month and link it with news
+Could you compile a list of currently trending Indian OTT shows and send it to my email?
 ```
+
+3. 
+```
+I would appreciate it if you could generate a list of the most popular Indian OTT series at the moment and share it via email.
+```
+
+## Running the Application
+
+1. **Start the Server Manager**:
+```bash
+python server_manager.py
+```
+- Look for the red icon in your system tray
+- The server will start automatically
+
+2. **Using the System Tray Icon**:
+- Right-click the icon to see available options
+- Use "Quit" to properly shut down both server and manager
+- Server status is indicated by the icon
+
+3. **Auto-start with Windows (Optional)**:
+To configure the server manager to start automatically with Windows:
+
+a. Create a shortcut to `server_manager.py`
+b. Press `Win + R`, type `shell:startup`, and press Enter
+c. Copy the shortcut to the Startup folder
 
 ## Troubleshooting
 
@@ -272,6 +193,22 @@ Track the price of Apple stock over the last month and link it with news
    - Verify the OpenAI API key
    - Ensure the query format is correct
 
+5. **Server Manager Issues**
+   - If the tray icon doesn't appear:
+     - Check if `pystray` and `pillow` are installed
+     - Verify you have system tray access
+     - Try running with administrator privileges
+   
+   - If the server doesn't start:
+     - Check the system tray icon's context menu
+     - Verify port 8000 is not in use
+     - Check the logs in your terminal
+
+6. **Auto-start Problems**
+   - Verify the path in the startup shortcut
+   - Ensure Python environment variables are set correctly
+   - Check Windows Task Manager for running instances
+
 ## Common Issues and Solutions
 
 1. **CORS Errors**:
@@ -294,3 +231,307 @@ If you encounter any issues:
 2. Look at Chrome's developer console (F12)
 3. Verify all configurations are correct
 4. Try restarting both the Python server and Chrome 
+
+## Core Components
+
+### 1. Server Implementation (server.py)
+
+The main FastAPI server that handles queries and integrates with Gemini AI.
+
+```python
+# server.py key components:
+
+# 1. API Configuration
+app = FastAPI()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["chrome-extension://*", "http://localhost:*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+# Initialize Google Generative AI
+api_key = os.getenv("GEMINI_API_KEY")
+client = genai.Client(api_key=api_key)
+model_id = "gemini-2.0-flash"
+
+EMAIL_CONFIG = {
+    "sender_email": os.getenv("SENDER_EMAIL"),
+    "sender_password": os.getenv("SENDER_PASSWORD"),  # App password, not your regular Gmail password
+    "smtp_server": "smtp.gmail.com",
+    "smtp_port": 587
+}
+
+# 2. Available Tools
+tools = {
+    "search_ott_series": {
+        "description": "Search for any TV series, movies, or shows on streaming platforms",
+        "execute": "execute_search_ott_series"
+    },
+    "send_email": {
+        "description": "Send email with search results",
+        "execute": "execute_send_email"
+    }
+}
+```
+
+Key Features:
+- **Gemini AI Integration**: Uses Google's Gemini AI for natural language processing
+- **Tool-based Architecture**: Modular design with separate tools for searching and emailing
+- **CORS Support**: Configured for Chrome extension communication
+- **Email Integration**: Supports sending results via email
+- **Conversation History**: Maintains context across multiple queries
+
+Environment Variables Required:
+```env
+GEMINI_API_KEY=your_gemini_api_key
+SENDER_EMAIL=your_gmail_address
+SENDER_PASSWORD=your_gmail_app_password
+```
+
+### 2. Testing Server (test_server.py)
+
+A testing script to verify server functionality without the Chrome extension.
+
+```python
+# test_server.py
+import requests
+import json
+
+def test_endpoint():
+    url = "http://localhost:8000/process-query"
+    data = {
+        "query": "What are the top trending OTT series?",
+        "history": [],
+        "email": "your_email@example.com"  # Optional
+    }
+    
+    try:
+        response = requests.post(url, json=data)        
+        print(f"Response: {response.json()['response']}")
+    except Exception as e:
+        print(f"Error: {str(e)}")
+
+if __name__ == "__main__":
+    test_endpoint()
+```
+
+#### Running Tests
+
+1. Start the server (either directly or through server manager)
+2. Run the test script:
+```bash
+python test_server.py
+```
+
+#### Example Test Queries
+
+```python
+# Different test scenarios
+test_queries = [
+    {
+        "query": "Find popular Netflix shows 2024",
+        "history": [],
+        "email": ""
+    },
+    {
+        "query": "Search for Korean dramas and email me the list",
+        "history": [],
+        "email": "your_email@example.com"
+    }
+]
+```
+
+## Running Different Components
+
+### 1. Direct Server Run
+Run the server directly (without system tray integration):
+```bash
+python -m uvicorn server:app --reload
+```
+
+### 2. Server Manager
+Run with system tray integration:
+```bash
+python server_manager.py
+```
+
+### 3. Test Server
+Run tests:
+```bash
+python test_server.py
+```
+
+## API Endpoints Details
+
+### POST /process-query
+
+Processes user queries and returns results.
+
+Request Format:
+```json
+{
+    "query": "string",
+    "history": [
+        {
+            "role": "user|assistant",
+            "content": "string"
+        }
+    ],
+    "email": "string (optional)"
+}
+```
+
+Response Format:
+```json
+{
+    "response": "string (markdown formatted response)",
+    "tools_used": [
+        {
+            "tool": "tool_name",
+            "result": "tool_result"
+        }
+    ]
+}
+```
+
+Example cURL Request:
+```bash
+curl -X POST "http://localhost:8000/process-query" \
+     -H "Content-Type: application/json" \
+     -d '{
+         "query": "Search for top rated shows on Netflix",
+         "history": [],
+         "email": ""
+     }'
+```
+
+## Testing and Development
+
+### Using test_server.py
+
+1. **Basic Testing**:
+```bash
+python test_server.py
+```
+
+2. **Custom Query Testing**:
+```python
+# Modify test_server.py data:
+data = {
+    "query": "Your custom query here",
+    "history": [],
+    "email": "optional_email@example.com"
+}
+```
+
+### Post-Clone Setup
+
+1. **Create Virtual Environment**:
+```bash
+# Windows
+python -m venv venv
+.\venv\Scripts\activate
+
+# macOS/Linux
+python3 -m venv venv
+source venv/bin/activate
+```
+
+2. **Install Dependencies**:
+```bash
+pip install -r requirements.txt
+```
+
+3. **Environment Configuration**:
+Create a new `.env` file in the root directory:
+```env
+GEMINI_API_KEY=your_gemini_api_key
+SENDER_EMAIL=your_gmail_address
+SENDER_PASSWORD=your_gmail_app_password
+```
+
+4. **Verify Installation**:
+```bash
+# Run the test server to verify setup
+python test_server.py
+```
+
+### Branch Information
+
+- `main`: Stable release branch
+- `development`: Active development branch
+- Feature branches: Named as `feature/feature-name`
+
+### Contributing
+
+1. **Fork the Repository**:
+   - Click the 'Fork' button on GitHub
+   - Clone your fork:
+     ```bash
+     git clone https://github.com/YOUR_USERNAME/EAG.git
+     ```
+
+2. **Create a Branch**:
+```bash
+git checkout -b feature/your-feature-name
+```
+
+3. **Make Changes and Commit**:
+```bash
+git add .
+git commit -m "Description of changes"
+```
+
+4. **Push Changes**:
+```bash
+git push origin feature/your-feature-name
+```
+
+5. **Create Pull Request**:
+   - Go to the original repository
+   - Click 'New Pull Request'
+   - Select your branch
+   - Describe your changes
+
+### Common Setup Issues
+
+1. **Missing Dependencies**:
+```bash
+# If you encounter missing dependencies
+pip install --upgrade -r requirements.txt
+```
+
+2. **Environment Variables**:
+- Verify `.env` file is created
+- Check all required variables are set
+- Ensure no spaces around '=' in `.env`
+
+3. **Port Conflicts**:
+```bash
+# If port 8000 is in use, modify server.py or use
+uvicorn server:app --port 8001
+```
+
+4. **Git Issues**:
+```bash
+# If you have merge conflicts
+git fetch origin
+git merge origin/main
+# Resolve conflicts and commit
+```
+## Demo & Screenshots
+
+### Extension Interface
+
+#### Search Interface
+![Extension Popup](artifacts/extension_resultpng.png)
+
+*The main extension interface where users can enter queries and email.*
+
+
+#### Server Logs
+![Server Running](artifacts/LLm_response.png)
+
+*Console output showing the server successfully running.*
+

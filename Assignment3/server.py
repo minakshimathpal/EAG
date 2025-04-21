@@ -163,7 +163,7 @@ def send_email(params: Dict[str, Any]) -> str:
             server.starttls()
             server.login(EMAIL_CONFIG["sender_email"], EMAIL_CONFIG["sender_password"])
             server.send_message(msg)
-
+        print("Email sent successfully")
         return "Email sent successfully"
     except Exception as e:
         return f"Error sending email: {str(e)}"
@@ -224,6 +224,7 @@ async def process_query(request: QueryRequest):
             {"role": "user", "content": request.query}
         ])
 
+        print("analysis_response", analysis_response)
         # Step 3: Parse LLM output as JSON    
         match = re.search(r"```(?:json)?\s*(\{.*?\})\s*```", analysis_response, re.DOTALL)
         if match:
