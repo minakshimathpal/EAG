@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Context-Aware Chatbot Settings</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      line-height: 1.6;
+    }
+    
+    h1 {
+      color: #4a69bd;
+      border-bottom: 2px solid #eee;
+      padding-bottom: 10px;
+    }
+    
+    .form-group {
+      margin-bottom: 20px;
+    }
+    
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    
+    input[type="text"], select {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+    
+    button {
+      background: #4a69bd;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    
+    button:hover {
+      background: #3c5aa6;
+    }
+    
+    .secondary-btn {
+      background: #6c757d;
+      color: white;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-top: 5px;
+    }
+    
+    .secondary-btn:hover {
+      background: #5a6268;
+    }
+    
+    .status {
+      margin-top: 20px;
+      padding: 10px;
+      border-radius: 4px;
+    }
+    
+    .success {
+      background: #d4edda;
+      color: #155724;
+    }
+    
+    .error {
+      background: #f8d7da;
+      color: #721c24;
+    }
+    
+    .info {
+      background: #cce5ff;
+      color: #004085;
+    }
+  </style>
+</head>
+<body>
+  <h1>Context-Aware Chatbot Settings</h1>
+  
+  <div class="form-group">
+    <label for="apiKey">Gemini API Key</label>
+    <input type="text" id="apiKey" placeholder="Enter your Gemini API key">
+    <small>Get your API key from <a href="https://makersuite.google.com/app/apikey" target="_blank">Google AI Studio</a></small>
+    <div>
+      <button id="testApiKey" class="secondary-btn">Test API Key</button>
+    </div>
+  </div>
+  
+  <div class="form-group">
+    <label for="autoShow">Auto-show Chatbot</label>
+    <select id="autoShow">
+      <option value="true">Yes - Show on all pages</option>
+      <option value="false">No - Only show when I click the extension icon</option>
+    </select>
+  </div>
+  
+  <div class="form-group">
+    <label for="theme">Theme</label>
+    <select id="theme">
+      <option value="light">Light</option>
+      <option value="dark">Dark</option>
+      <option value="system">Match System</option>
+    </select>
+  </div>
+  
+  <div class="form-group">
+    <label for="fontSize">Font Size</label>
+    <select id="fontSize">
+      <option value="small">Small</option>
+      <option value="medium">Medium</option>
+      <option value="large">Large</option>
+    </select>
+  </div>
+  
+  <div class="form-group">
+    <label for="model">Gemini Model</label>
+    <select id="model">
+      <option value="gemini-1.5-flash">Gemini 1.5 Flash (Fast)</option>
+      <option value="gemini-1.5-pro">Gemini 1.5 Pro (More Capable)</option>
+    </select>
+  </div>
+  
+  <button id="saveBtn">Save Settings</button>
+  
+  <div id="status" class="status" style="display: none;"></div>
+  
+  <script src="options.js"></script>
+</body>
+</html>

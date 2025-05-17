@@ -1,0 +1,39 @@
+{
+  "manifest_version": 3,
+  "name": "Context-Aware Chatbot",
+  "version": "1.0",
+  "description": "A chatbot that provides assistance based on webpage content using Google Gemini",
+  "permissions": ["activeTab", "storage", "contextMenus", "scripting"],
+  "action": {
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": [
+        "content-extractor.js",
+        "context-processor.js",
+        "ai-integration.js",
+        "chatbot-ui.js",
+        "context-chatbot.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "options_page": "options.html",
+  "background": {
+    "service_worker": "background.js"
+  },
+  "host_permissions": [
+    "https://generativelanguage.googleapis.com/*"
+  ]
+} 
