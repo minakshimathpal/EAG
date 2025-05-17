@@ -1,0 +1,15 @@
+[project]
+name = "assignment4"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "auto-py-to-exe>=2.46.0",
+    "dotenv>=0.9.9",
+    "google-genai>=1.12.1",
+    "mcp[cli]>=1.6.0",
+    "pillow>=11.2.1",
+    "pyautogui>=0.9.54",
+    "pywinauto>=0.6.9",
+]
